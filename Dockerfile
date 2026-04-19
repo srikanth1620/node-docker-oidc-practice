@@ -1,29 +1,24 @@
-# Multi-stage Dockerfile for Node.js app
-
-# Builder Stage
-FROM node:18-alpine AS builder
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci --only=production
-
-COPY . .
-
-# Production Stage
 FROM node:18-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app ./
+# The backslash after RUN allows the shell to see the heredoc as part of the command
+RUN cat <<'EOF' > app.js
+const http = require('http');
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S -u 1001 -G nodejs nodeuser
+const port = process.env.PORT || 8080;
 
-USER nodeuser
+const server = http.createServer((req, res) => {
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.end('Hello from Node.js Docker App!\n\nDeployed successfully using OIDC + ACR + App Service\n');
+});
+
+server.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
+EOF
 
 EXPOSE 8080
 
 CMD ["node", "app.js"]
+
