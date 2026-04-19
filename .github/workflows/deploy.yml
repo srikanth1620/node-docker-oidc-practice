@@ -1,4 +1,4 @@
-name: Deploy Node.js Docker App to Azure (Practice)
+name: Deploy Node.js Docker App to Azure
 
 on:
   push:
@@ -25,8 +25,7 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # ACR Login using az acr login (this method worked for you before)
-      - name: Login to ACR
+      - name: Login to ACR (for push)
         run: az acr login --name nodeoidcpracticeacr
 
       - name: Build and push Docker image
@@ -44,3 +43,6 @@ jobs:
           app-name: 'node-docker-practice-app'
           slot-name: 'Production'
           images: 'nodeoidcpracticeacr.azurecr.io/node-docker-practice:${{ github.sha }}'
+          # Use admin credentials for pull (Option 2)
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
